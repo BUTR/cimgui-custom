@@ -2,3 +2,6 @@
 	path = imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "imgui_markdown"]
+	path = imgui_markdown
+	url = https://github.com/enkisoftware/imgui_markdown
