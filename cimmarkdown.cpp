@@ -12,9 +12,13 @@ CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo* markdo
 {
     return ImGui::defaultMarkdownFormatCallback(*markdownFormatInfo_,start_);
 }
-CIMGUI_API void mdMarkdown(const char* markdown_,size_t markdownLength_,const MarkdownConfig* mdConfig_)
+CIMGUI_API void mdMarkdown(const char* markdown,size_t markdownLength,const MarkdownConfig* mdConfig)
 {
-    return ImGui::Markdown(markdown_,markdownLength_,*mdConfig_);
+    if (mdConfig == NULL)
+    {
+        return ImGui::Markdown(markdown,markdownLength, {});
+    }
+    return ImGui::Markdown(markdown,markdownLength,*mdConfig);
 }
 CIMGUI_API void mdUnderLine(ImColor col_)
 {
