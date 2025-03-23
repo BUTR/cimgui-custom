@@ -12,12 +12,7 @@
 typedef struct tm tm;
 
 
-typedef struct Link Link;
 typedef struct MarkdownConfig MarkdownConfig;
-typedef struct TextRegion TextRegion;
-typedef struct Line Line;
-    struct Link;
-    struct MarkdownConfig;
 typedef struct MarkdownLinkCallbackData MarkdownLinkCallbackData;
 struct MarkdownLinkCallbackData
 {
@@ -81,90 +76,23 @@ struct MarkdownConfig
         void* userData;
         MarkdownFormalCallback* formatCallback;
 };
-    struct TextRegion;
-    struct Line;
-struct TextRegion
-{};
-struct Line
-{
-        bool isHeading;
-        bool isEmphasis;
-        bool isUnorderedListStart;
-        bool isLeadingSpace;
-        int leadSpaceCount;
-        int headingCount;
-        int emphasisCount;
-        int lineStart;
-        int lineEnd;
-        int lastRenderPosition;
-};
-typedef struct TextBlock TextBlock;
-struct TextBlock
-{
-        int start;
-        int stop;
-};
-typedef enum {
-            NO_LINK,
-            HAS_SQUARE_BRACKET_OPEN,
-            HAS_SQUARE_BRACKETS,
-            HAS_SQUARE_BRACKETS_ROUND_BRACKET_OPEN,
-        } LinkState;
-
-struct Link
-{
-        LinkState state;
-        TextBlock text;
-        TextBlock url;
-        bool isImage;
-        int num_brackets_open;
-};
-typedef struct Emphasis Emphasis;
-typedef enum {
-   NONE,
-   LEFT,
-   MIDDLE,
-   RIGHT,
-  } EmphasisState;
-
-struct Emphasis
-{
-        EmphasisState state;
-        TextBlock text;
-        char sym;
-};
 #else
 
 #endif // CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 
 #ifndef CIMGUI_DEFINE_ENUMS_AND_STRUCTS
-typedef ImGui::Emphasis Emphasis;
-typedef ImGui::Line Line;
-typedef ImGui::Link Link;
 typedef ImGui::MarkdownConfig MarkdownConfig;
 typedef ImGui::MarkdownFormatInfo MarkdownFormatInfo;
 typedef ImGui::MarkdownHeadingFormat MarkdownHeadingFormat;
 typedef ImGui::MarkdownImageData MarkdownImageData;
 typedef ImGui::MarkdownLinkCallbackData MarkdownLinkCallbackData;
 typedef ImGui::MarkdownTooltipCallbackData MarkdownTooltipCallbackData;
-typedef ImGui::TextBlock TextBlock;
-typedef ImGui::TextRegion TextRegion;
 typedef ImGui::MarkdownFormatType MarkdownFormatType;
 #endif //CIMGUI_DEFINE_ENUMS_AND_STRUCTS
+
 CIMGUI_API void defaultMarkdownTooltipCallback(MarkdownTooltipCallbackData data_);
 CIMGUI_API void defaultMarkdownFormatCallback(const MarkdownFormatInfo markdownFormatInfo_,bool start_);
-CIMGUI_API void Markdown(const char* markdown_,size_t markdownLength_,const MarkdownConfig mdConfig_);
-CIMGUI_API void UnderLine(ImColor col_);
-CIMGUI_API void RenderLine(const char* markdown_,Line* line_,TextRegion* textRegion_,const MarkdownConfig mdConfig_);
-CIMGUI_API TextRegion* TextRegion_TextRegion(void);
-CIMGUI_API void TextRegion_destroy(TextRegion* self);
-CIMGUI_API void RenderTextWrapped(TextRegion* self,const char* text_,const char* text_end_,bool bIndentToHere_);
-CIMGUI_API void RenderListTextWrapped(TextRegion* self,const char* text_,const char* text_end_);
-CIMGUI_API bool RenderLinkText(TextRegion* self,const char* text_,const char* text_end_,const Link link_,const char* markdown_,const MarkdownConfig mdConfig_,const char** linkHoverStart_);
-CIMGUI_API void RenderLinkTextWrapped(TextRegion* self,const char* text_,const char* text_end_,const Link link_,const char* markdown_,const MarkdownConfig mdConfig_,const char** linkHoverStart_,bool bIndentToHere_);
-CIMGUI_API void ResetIndent(TextRegion* self);
-CIMGUI_API int size(TextBlock* self);
-CIMGUI_API bool IsCharInsideWord(char c_);
+CIMGUI_API void Markdown(const char* markdown_,size_t markdownLength_,const MarkdownConfig* mdConfig_);
 
 
 

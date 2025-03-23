@@ -4,13 +4,13 @@
 #include "imgui_markdown.h"
 #include "cimmarkdown.h"
 
-CIMGUI_API void mdDefaultMarkdownTooltipCallback(MarkdownTooltipCallbackData* data_)
+CIMGUI_API void mdDefaultMarkdownTooltipCallback(MarkdownTooltipCallbackData data_)
 {
-    return ImGui::defaultMarkdownTooltipCallback(*data_);
+    return ImGui::defaultMarkdownTooltipCallback(data_);
 }
-CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo* markdownFormatInfo_,bool start_)
+CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo markdownFormatInfo_,bool start_)
 {
-    return ImGui::defaultMarkdownFormatCallback(*markdownFormatInfo_,start_);
+    return ImGui::defaultMarkdownFormatCallback(markdownFormatInfo_,start_);
 }
 CIMGUI_API void mdMarkdown(const char* markdown,size_t markdownLength,const MarkdownConfig* mdConfig)
 {
@@ -19,48 +19,4 @@ CIMGUI_API void mdMarkdown(const char* markdown,size_t markdownLength,const Mark
         return ImGui::Markdown(markdown,markdownLength, {});
     }
     return ImGui::Markdown(markdown,markdownLength,*mdConfig);
-}
-CIMGUI_API void mdUnderLine(ImColor col_)
-{
-    return ImGui::UnderLine(col_);
-}
-CIMGUI_API void mdRenderLine(const char* markdown_,Line* line_,TextRegion* textRegion_,const MarkdownConfig* mdConfig_)
-{
-    return ImGui::RenderLine(markdown_,*line_,*textRegion_,*mdConfig_);
-}
-CIMGUI_API TextRegion* mdTextRegion_TextRegion(void)
-{
-    return IM_NEW(TextRegion)();
-}
-CIMGUI_API void mdTextRegion_destroy(TextRegion* self)
-{
-    IM_DELETE(self);
-}
-CIMGUI_API void mdRenderTextWrapped(TextRegion* self,const char* text_,const char* text_end_,bool bIndentToHere_)
-{
-    return self->RenderTextWrapped(text_,text_end_,bIndentToHere_);
-}
-CIMGUI_API void mdRenderListTextWrapped(TextRegion* self,const char* text_,const char* text_end_)
-{
-    return self->RenderListTextWrapped(text_,text_end_);
-}
-CIMGUI_API bool mdRenderLinkText(TextRegion* self,const char* text_,const char* text_end_,const Link* link_,const char* markdown_,const MarkdownConfig* mdConfig_,const char** linkHoverStart_)
-{
-    return self->RenderLinkText(text_,text_end_,*link_,markdown_,*mdConfig_,linkHoverStart_);
-}
-CIMGUI_API void mdRenderLinkTextWrapped(TextRegion* self,const char* text_,const char* text_end_,const Link* link_,const char* markdown_,const MarkdownConfig* mdConfig_,const char** linkHoverStart_,bool bIndentToHere_)
-{
-    return self->RenderLinkTextWrapped(text_,text_end_,*link_,markdown_,*mdConfig_,linkHoverStart_,bIndentToHere_);
-}
-CIMGUI_API void mdResetIndent(TextRegion* self)
-{
-    return self->ResetIndent();
-}
-CIMGUI_API int mdSize(TextBlock* self)
-{
-    return self->size();
-}
-CIMGUI_API bool mdIsCharInsideWord(char c_)
-{
-    return ImGui::IsCharInsideWord(c_);
 }
