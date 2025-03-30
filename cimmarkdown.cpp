@@ -32,6 +32,10 @@ CIMGUI_API void mdDefaultMarkdownTooltipCallback(MarkdownTooltipCallbackData dat
 {
     return ImGui::defaultMarkdownTooltipCallback(data_);
 }
+CIMGUI_API void mdDefaultMarkdownLinkCallback(MarkdownLinkCallbackData data_)
+{
+    return ImGui::defaultMarkdownLinkCallback(data_);
+}
 CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo markdownFormatInfo_,bool start_)
 {
     return ImGui::defaultMarkdownFormatCallback(markdownFormatInfo_,start_);

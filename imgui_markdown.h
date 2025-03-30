@@ -229,6 +229,7 @@ ___
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include <stdint.h>
+#include <vector>
 
 namespace ImGui
 {
@@ -939,6 +940,29 @@ namespace ImGui
                 *linkHoverStart_ = NULL;
             }
         }
+
+
+    inline void defaultMarkdownLinkCallback( MarkdownLinkCallbackData data_ )
+    {
+        if (!data_.userData || data_.linkLength == 0) {
+            return;
+        }
+
+        ImGuiIO io = ImGui::GetIO();
+        if (!io.PlatformOpenInShellFn) {
+            return;
+        }
+
+        ImGuiContext* ctx = ImGui::GetCurrentContext();
+        if (!ctx) {
+            return;
+        }
+
+        std::vector<char> buffer(data_.linkLength + 1);
+        memcpy(buffer.data(), data_.link, data_.linkLength);
+        buffer[data_.linkLength] = '\0';
+        io.PlatformOpenInShellFn(ctx, buffer.data());
+    }
 
 
     inline void defaultMarkdownFormatCallback( const MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
