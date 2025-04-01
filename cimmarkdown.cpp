@@ -36,7 +36,7 @@ CIMGUI_API void mdDefaultMarkdownLinkCallback(const MarkdownLinkCallbackData* da
 {
     return ImGui::defaultMarkdownLinkCallback(data_);
 }
-CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo markdownFormatInfo_,bool start_)
+CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo* markdownFormatInfo_,bool start_)
 {
     return ImGui::defaultMarkdownFormatCallback(markdownFormatInfo_,start_);
 }

@@ -113,7 +113,7 @@ typedef ImGui::MarkdownFormatType MarkdownFormatType;
 
 CIMGUI_API void mdDefaultMarkdownTooltipCallback(const MarkdownTooltipCallbackData* data_);
 CIMGUI_API void mdDefaultMarkdownLinkCallback(const MarkdownLinkCallbackData* data_);
-CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo markdownFormatInfo_,bool start_);
+CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo* markdownFormatInfo_,bool start_);
 CIMGUI_API void mdMarkdown(const char* markdown_,size_t markdownLength_,const MarkdownConfig* mdConfig_);
 
 

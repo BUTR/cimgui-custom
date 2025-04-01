@@ -19,213 +19,6 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-/*
-API BREAKING CHANGES
-====================
-- 2020/04/22 - Added tooltipCallback parameter to ImGui::MarkdownConfig
-- 2019/02/01 - Changed LinkCallback parameters, see https://github.com/juliettef/imgui_markdown/issues/2
-- 2019/02/05 - Added imageCallback parameter to ImGui::MarkdownConfig
-- 2019/02/06 - Added useLinkCallback member variable to MarkdownImageData to configure using images as links
-*/
-
-/*
-imgui_markdown https://github.com/juliettef/imgui_markdown
-Markdown for Dear ImGui
-
-A permissively licensed markdown single-header library for https://github.com/ocornut/imgui
-
-Currently requires C++11 or above
-
-imgui_markdown currently supports the following markdown functionality:
- - Wrapped text
- - Headers H1, H2, H3
- - Emphasis
- - Indented text, multi levels
- - Unordered lists and sub-lists
- - Link
- - Image
- - Horizontal rule
- 
-Syntax
-
-Wrapping: 
-Text wraps automatically. To add a new line, use 'Return'.
-
-Headers:
-# H1
-## H2
-### H3
-
-Emphasis:
-*emphasis*
-_emphasis_
-**strong emphasis**
-__strong emphasis__
-
-Indents: 
-On a new line, at the start of the line, add two spaces per indent.
-  Indent level 1
-    Indent level 2
-
-Unordered lists: 
-On a new line, at the start of the line, add two spaces, an asterisks and a space. 
-For nested lists, add two additional spaces in front of the asterisk per list level increment.
-  * Unordered List level 1
-    * Unordered List level 2
-
-Link:
-[link description](https://...)
-
-Image:
-![image alt text](image identifier e.g. filename)
-
-Horizontal Rule:
-***
-___
-
-===============================================================================
-
-// Example use on Windows with links opening in a browser
-
-#include "ImGui.h"                // https://github.com/ocornut/imgui
-#include "imgui_markdown.h"       // https://github.com/juliettef/imgui_markdown
-#include "IconsFontAwesome5.h"    // https://github.com/juliettef/IconFontCppHeaders
-
-// Following includes for Windows LinkCallback
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include "Shellapi.h"
-#include <string>
-
-void LinkCallback( ImGui::MarkdownLinkCallbackData data_ );
-inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
-
-static ImFont* H1 = NULL;
-static ImFont* H2 = NULL;
-static ImFont* H3 = NULL;
-
-static ImGui::MarkdownConfig mdConfig; 
-
-
-void LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
-{
-    std::string url( data_.link, data_.linkLength );
-    if( !data_.isImage )
-    {
-        ShellExecuteA( NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL );
-    }
-}
-
-inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
-{
-    // In your application you would load an image based on data_ input. Here we just use the imgui font texture.
-    ImTextureID image = ImGui::GetIO().Fonts->TexID;
-    // > C++14 can use ImGui::MarkdownImageData imageData{ true, false, image, ImVec2( 40.0f, 20.0f ) };
-    ImGui::MarkdownImageData imageData;
-    imageData.isValid =         true;
-    imageData.useLinkCallback = false;
-    imageData.user_texture_id = image;
-    imageData.size =            ImVec2( 40.0f, 20.0f );
-    
-    // For image resize when available size.x > image width, add
-    ImVec2 const contentSize = ImGui::GetContentRegionAvail();
-    if( imageData.size.x > contentSize.x )
-    {
-        float const ratio = imageData.size.y/imageData.size.x;
-        imageData.size.x = contentSize.x;
-        imageData.size.y = contentSize.x*ratio;
-    }
-
-    return imageData;
-}
-
-void LoadFonts( float fontSize_ = 12.0f )
-{
-    ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->Clear();
-    // Base font
-    io.Fonts->AddFontFromFileTTF( "myfont.ttf", fontSize_ );
-    // Bold headings H2 and H3
-    H2 = io.Fonts->AddFontFromFileTTF( "myfont-bold.ttf", fontSize_ );
-    H3 = mdConfig.headingFormats[ 1 ].font;
-    // bold heading H1
-    float fontSizeH1 = fontSize_ * 1.1f;
-    H1 = io.Fonts->AddFontFromFileTTF( "myfont-bold.ttf", fontSizeH1 );
-}
-
-void ExampleMarkdownFormatCallback( const ImGui::MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
-{
-    // Call the default first so any settings can be overwritten by our implementation.
-    // Alternatively could be called or not called in a switch statement on a case by case basis.
-    // See defaultMarkdownFormatCallback definition for furhter examples of how to use it.
-    ImGui::defaultMarkdownFormatCallback( markdownFormatInfo_, start_ );        
-       
-    switch( markdownFormatInfo_.type )
-    {
-    // example: change the colour of heading level 2
-    case ImGui::MarkdownFormatType::HEADING:
-    {
-        if( markdownFormatInfo_.level == 2 )
-        {
-            if( start_ )
-            {
-                ImGui::PushStyleColor( ImGuiCol_Text, ImGui::GetStyle().Colors[ ImGuiCol_TextDisabled ] );
-            }
-            else
-            {
-                ImGui::PopStyleColor();
-            }
-        }
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
-}
-
-void Markdown( const std::string& markdown_ )
-{
-    // You can make your own Markdown function with your prefered string container and markdown config.
-    // > C++14 can use ImGui::MarkdownConfig mdConfig{ LinkCallback, NULL, ImageCallback, ICON_FA_LINK, { { H1, true }, { H2, true }, { H3, false } }, NULL };
-    mdConfig.linkCallback =         LinkCallback;
-    mdConfig.tooltipCallback =      NULL;
-    mdConfig.imageCallback =        ImageCallback;
-    mdConfig.linkIcon =             ICON_FA_LINK;
-    mdConfig.headingFormats[0] =    { H1, true };
-    mdConfig.headingFormats[1] =    { H2, true };
-    mdConfig.headingFormats[2] =    { H3, false };
-    mdConfig.userData =             NULL;
-    mdConfig.formatCallback =       ExampleMarkdownFormatCallback;
-    ImGui::Markdown( markdown_.c_str(), markdown_.length(), mdConfig );
-}
-
-void MarkdownExample()
-{
-    const std::string markdownText = u8R"(
-# H1 Header: Text and Links
-You can add [links like this one to enkisoftware](https://www.enkisoftware.com/) and lines will wrap well.
-You can also insert images ![image alt text](image identifier e.g. filename)
-Horizontal rules:
-***
-___
-*Emphasis* and **strong emphasis** change the appearance of the text.
-## H2 Header: indented text.
-  This text has an indent (two leading spaces).
-    This one has two.
-### H3 Header: Lists
-  * Unordered lists
-    * Lists can be indented with two extra spaces.
-  * Lists can have [links like this one to Avoyd](https://www.avoyd.com/) and *emphasized text*
-)";
-    Markdown( markdownText );
-}
-
-===============================================================================
-*/
-
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include <stdint.h>
@@ -302,9 +95,9 @@ namespace ImGui
     }
 
     typedef MarkdownImageData   MarkdownImageCallback( const MarkdownLinkCallbackData* data );
-    typedef void                MarkdownFormalCallback( const MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
+    typedef void                MarkdownFormalCallback( const MarkdownFormatInfo* markdownFormatInfo_, bool start_ );
 
-    inline void defaultMarkdownFormatCallback( const MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
+    inline void defaultMarkdownFormatCallback( const MarkdownFormatInfo* markdownFormatInfo_, bool start_ );
 
     struct MarkdownHeadingFormat
     {   
@@ -489,7 +282,7 @@ namespace ImGui
         if( line_.isUnorderedListStart )    // render unordered list
         {
             formatInfo.type = MarkdownFormatType::UNORDERED_LIST;
-            mdConfig_.formatCallback( formatInfo, true );
+            mdConfig_.formatCallback( &formatInfo, true );
             const char* text = markdown_ + textStart + 1;
             textRegion_.RenderListTextWrapped( text, text + textSize - 1 );
         }
@@ -497,7 +290,7 @@ namespace ImGui
         {
             formatInfo.level = line_.headingCount;
             formatInfo.type = MarkdownFormatType::HEADING;
-            mdConfig_.formatCallback( formatInfo, true );
+            mdConfig_.formatCallback( &formatInfo, true );
             const char* text = markdown_ + textStart + 1;
             textRegion_.RenderTextWrapped( text, text + textSize - 1 );
         }
@@ -505,18 +298,18 @@ namespace ImGui
 		{
 			formatInfo.level = line_.emphasisCount;
 			formatInfo.type = MarkdownFormatType::EMPHASIS;
-			mdConfig_.formatCallback(formatInfo, true);
+			mdConfig_.formatCallback(&formatInfo, true);
 			const char* text = markdown_ + textStart;
 			textRegion_.RenderTextWrapped(text, text + textSize);
 		}
         else                                // render a normal paragraph chunk
         {
             formatInfo.type = MarkdownFormatType::NORMAL_TEXT;
-            mdConfig_.formatCallback( formatInfo, true );
+            mdConfig_.formatCallback( &formatInfo, true );
             const char* text = markdown_ + textStart;
             textRegion_.RenderTextWrapped( text, text + textSize );
         }
-        mdConfig_.formatCallback( formatInfo, false );
+        mdConfig_.formatCallback( &formatInfo, false );
 
         // unindent
         for( int j = indentStart; j < line_.leadSpaceCount / 2; ++j )
@@ -855,7 +648,7 @@ namespace ImGui
         MarkdownFormatInfo formatInfo;
         formatInfo.config = &mdConfig_;
         formatInfo.type = MarkdownFormatType::LINK;
-        mdConfig_.formatCallback( formatInfo, true );
+        mdConfig_.formatCallback( &formatInfo, true );
         ImGui::PushTextWrapPos( -1.0f );
         ImGui::TextUnformatted( text_, text_end_ );
         ImGui::PopTextWrapPos();
@@ -868,7 +661,7 @@ namespace ImGui
         bool bHovered = bThisItemHovered || ( *linkHoverStart_ == ( markdown_ + link_.text.start ) );
 
         formatInfo.itemHovered = bHovered;
-        mdConfig_.formatCallback( formatInfo, false );
+        mdConfig_.formatCallback( &formatInfo, false );
 
         if(bHovered)
         {
@@ -970,9 +763,9 @@ namespace ImGui
     }
 
 
-    inline void defaultMarkdownFormatCallback( const MarkdownFormatInfo& markdownFormatInfo_, bool start_ )
+    inline void defaultMarkdownFormatCallback( const MarkdownFormatInfo* markdownFormatInfo_, bool start_ )
     {
-        switch( markdownFormatInfo_.type )
+        switch( markdownFormatInfo_->type )
         {
         case MarkdownFormatType::NORMAL_TEXT:
             break;
@@ -981,7 +774,7 @@ namespace ImGui
             MarkdownHeadingFormat fmt;
             // default styling for emphasis uses last headingFormats - for your own styling
             // implement EMPHASIS in your formatCallback
-            if( markdownFormatInfo_.level == 1 )
+            if( markdownFormatInfo_->level == 1 )
             {
                 // normal emphasis
  			    if( start_ )
@@ -996,7 +789,7 @@ namespace ImGui
             else
             {
                 // strong emphasis
-                fmt = markdownFormatInfo_.config->headingFormats[ MarkdownConfig::NUMHEADINGS - 1 ];
+                fmt = markdownFormatInfo_->config->headingFormats[ MarkdownConfig::NUMHEADINGS - 1 ];
 			    if( start_ )
 			    {
 				    if( fmt.font )
@@ -1017,13 +810,13 @@ namespace ImGui
         case MarkdownFormatType::HEADING:
         {
             MarkdownHeadingFormat fmt;
-            if( markdownFormatInfo_.level > MarkdownConfig::NUMHEADINGS )
+            if( markdownFormatInfo_->level > MarkdownConfig::NUMHEADINGS )
             {
-                fmt = markdownFormatInfo_.config->headingFormats[ MarkdownConfig::NUMHEADINGS - 1 ];
+                fmt = markdownFormatInfo_->config->headingFormats[ MarkdownConfig::NUMHEADINGS - 1 ];
             }
             else
             {
-                fmt = markdownFormatInfo_.config->headingFormats[ markdownFormatInfo_.level - 1 ];
+                fmt = markdownFormatInfo_->config->headingFormats[ markdownFormatInfo_->level - 1 ];
             }
             if( start_ )
             {
@@ -1061,7 +854,7 @@ namespace ImGui
             else
             {
                 ImGui::PopStyleColor();
-                if( markdownFormatInfo_.itemHovered )
+                if( markdownFormatInfo_->itemHovered )
                 {
                     ImGui::UnderLine( ImGui::GetStyle().Colors[ ImGuiCol_ButtonHovered ] );
                 }
