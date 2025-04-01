@@ -28,7 +28,7 @@ SOFTWARE.
 #include "imgui_markdown.h"
 #include "cimmarkdown.h"
 
-CIMGUI_API void mdDefaultMarkdownTooltipCallback(MarkdownTooltipCallbackData data_)
+CIMGUI_API void mdDefaultMarkdownTooltipCallback(const MarkdownTooltipCallbackData* data_)
 {
     return ImGui::defaultMarkdownTooltipCallback(data_);
 }

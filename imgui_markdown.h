@@ -287,17 +287,17 @@ namespace ImGui
     };
 
     typedef void                MarkdownLinkCallback( const MarkdownLinkCallbackData* data );    
-    typedef void                MarkdownTooltipCallback( MarkdownTooltipCallbackData data );
+    typedef void                MarkdownTooltipCallback( const MarkdownTooltipCallbackData* data );
 
-    inline void defaultMarkdownTooltipCallback( MarkdownTooltipCallbackData data_ )
+    inline void defaultMarkdownTooltipCallback( const MarkdownTooltipCallbackData* data_ )
     {
-        if( data_.linkData.isImage )
+        if( data_->linkData.isImage )
         {
-            ImGui::SetTooltip( "%.*s", data_.linkData.linkLength, data_.linkData.link );
+            ImGui::SetTooltip( "%.*s", data_->linkData.linkLength, data_->linkData.link );
         }
         else
         {
-            ImGui::SetTooltip( "%s Open in browser\n%.*s", data_.linkIcon, data_.linkData.linkLength, data_.linkData.link );
+            ImGui::SetTooltip( "%s Open in browser\n%.*s", data_->linkIcon, data_->linkData.linkLength, data_->linkData.link );
         }
     }
 
@@ -686,7 +686,8 @@ namespace ImGui
                             }
                             if( link.text.size() > 0 && mdConfig_.tooltipCallback )
                             {
-                                mdConfig_.tooltipCallback( { { markdown_ + link.text.start, link.text.size(), markdown_ + link.url.start, link.url.size(), mdConfig_.userData, true }, mdConfig_.linkIcon } );
+                                MarkdownTooltipCallbackData data = { { markdown_ + link.text.start, link.text.size(), markdown_ + link.url.start, link.url.size(), mdConfig_.userData, true }, mdConfig_.linkIcon };
+                                mdConfig_.tooltipCallback( &data );
                             }
                         }
                     }
@@ -878,7 +879,8 @@ namespace ImGui
             }
             if( mdConfig_.tooltipCallback )
             {
-                mdConfig_.tooltipCallback( { { markdown_ + link_.text.start, link_.text.size(), markdown_ + link_.url.start, link_.url.size(), mdConfig_.userData, false }, mdConfig_.linkIcon } );
+                MarkdownTooltipCallbackData data = { { markdown_ + link_.text.start, link_.text.size(), markdown_ + link_.url.start, link_.url.size(), mdConfig_.userData, false }, mdConfig_.linkIcon };
+                mdConfig_.tooltipCallback( &data );
             }
         }
         return bThisItemHovered;
@@ -947,7 +949,7 @@ namespace ImGui
 
     inline void defaultMarkdownLinkCallback( const MarkdownLinkCallbackData* data_ )
     {
-        if (!data_->userData || data_->linkLength == 0) {
+        if (data_->linkLength == 0) {
             return;
         }
 

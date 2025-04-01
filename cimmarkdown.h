@@ -111,9 +111,10 @@ typedef ImGui::MarkdownTooltipCallbackData MarkdownTooltipCallbackData;
 typedef ImGui::MarkdownFormatType MarkdownFormatType;
 #endif //CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 
-CIMGUI_API void defaultMarkdownTooltipCallback(MarkdownTooltipCallbackData data_);
-CIMGUI_API void defaultMarkdownFormatCallback(const MarkdownFormatInfo markdownFormatInfo_,bool start_);
-CIMGUI_API void Markdown(const char* markdown_,size_t markdownLength_,const MarkdownConfig* mdConfig_);
+CIMGUI_API void mdDefaultMarkdownTooltipCallback(const MarkdownTooltipCallbackData* data_);
+CIMGUI_API void mdDefaultMarkdownLinkCallback(const MarkdownLinkCallbackData* data_);
+CIMGUI_API void mdDefaultMarkdownFormatCallback(const MarkdownFormatInfo markdownFormatInfo_,bool start_);
+CIMGUI_API void mdMarkdown(const char* markdown_,size_t markdownLength_,const MarkdownConfig* mdConfig_);
 
 
 
