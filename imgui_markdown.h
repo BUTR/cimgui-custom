@@ -286,7 +286,7 @@ namespace ImGui
         const MarkdownConfig*   config  = NULL;
     };
 
-    typedef void                MarkdownLinkCallback( MarkdownLinkCallbackData data );    
+    typedef void                MarkdownLinkCallback( const MarkdownLinkCallbackData* data );    
     typedef void                MarkdownTooltipCallback( MarkdownTooltipCallbackData data );
 
     inline void defaultMarkdownTooltipCallback( MarkdownTooltipCallbackData data_ )
@@ -301,7 +301,7 @@ namespace ImGui
         }
     }
 
-    typedef MarkdownImageData   MarkdownImageCallback( MarkdownLinkCallbackData data );
+    typedef MarkdownImageData   MarkdownImageCallback( const MarkdownLinkCallbackData* data );
     typedef void                MarkdownFormalCallback( const MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
 
     inline void defaultMarkdownFormatCallback( const MarkdownFormatInfo& markdownFormatInfo_, bool start_ );
@@ -653,7 +653,8 @@ namespace ImGui
                         bool useLinkCallback = false;
                         if( mdConfig_.imageCallback )
                         {
-                            MarkdownImageData imageData = mdConfig_.imageCallback( { markdown_ + link.text.start, link.text.size(), markdown_ + link.url.start, link.url.size(), mdConfig_.userData, true } );
+                            MarkdownLinkCallbackData data = { markdown_ + link.text.start, link.text.size(), markdown_ + link.url.start, link.url.size(), mdConfig_.userData, true };
+                            MarkdownImageData imageData = mdConfig_.imageCallback( &data );
                             useLinkCallback = imageData.useLinkCallback;
                             if( imageData.isValid )
                             {
@@ -680,7 +681,8 @@ namespace ImGui
                         {
                             if( ImGui::IsMouseReleased( 0 ) && mdConfig_.linkCallback && useLinkCallback )
                             {
-                                mdConfig_.linkCallback( { markdown_ + link.text.start, link.text.size(), markdown_ + link.url.start, link.url.size(), mdConfig_.userData, true } );
+                                MarkdownLinkCallbackData data = { markdown_ + link.text.start, link.text.size(), markdown_ + link.url.start, link.url.size(), mdConfig_.userData, true };
+                                mdConfig_.linkCallback( &data );
                             }
                             if( link.text.size() > 0 && mdConfig_.tooltipCallback )
                             {
@@ -871,7 +873,8 @@ namespace ImGui
         {
             if( ImGui::IsMouseReleased( 0 ) && mdConfig_.linkCallback )
             {
-                mdConfig_.linkCallback( { markdown_ + link_.text.start, link_.text.size(), markdown_ + link_.url.start, link_.url.size(), mdConfig_.userData, false } );
+                MarkdownLinkCallbackData data = { markdown_ + link_.text.start, link_.text.size(), markdown_ + link_.url.start, link_.url.size(), mdConfig_.userData, false };
+                mdConfig_.linkCallback( &data );
             }
             if( mdConfig_.tooltipCallback )
             {
@@ -942,9 +945,9 @@ namespace ImGui
         }
 
 
-    inline void defaultMarkdownLinkCallback( MarkdownLinkCallbackData data_ )
+    inline void defaultMarkdownLinkCallback( const MarkdownLinkCallbackData* data_ )
     {
-        if (!data_.userData || data_.linkLength == 0) {
+        if (!data_->userData || data_->linkLength == 0) {
             return;
         }
 
@@ -958,9 +961,9 @@ namespace ImGui
             return;
         }
 
-        std::vector<char> buffer(data_.linkLength + 1);
-        memcpy(buffer.data(), data_.link, data_.linkLength);
-        buffer[data_.linkLength] = '\0';
+        std::vector<char> buffer(data_->linkLength + 1);
+        memcpy(buffer.data(), data_->link, data_->linkLength);
+        buffer[data_->linkLength] = '\0';
         io.PlatformOpenInShellFn(ctx, buffer.data());
     }
 
