@@ -646,9 +646,17 @@ namespace ImGui
     inline void TextRegion::RenderLinkTextWrapped(const char* text_, const char* text_end_, const Link& link_,
         const char* markdown_, const MarkdownConfig& mdConfig_)
     {
-        const size_t MAX_STACK_SIZE = 2048;
+        constexpr size_t MAX_LINK_TEXT_LENGTH = 500;
+        constexpr size_t MAX_LINK_URL_LENGTH = 2000;
+        constexpr size_t MAX_STACK_SIZE = 1024;
+
         size_t textSize = link_.text.size();
         size_t urlSize = link_.url.size();
+
+        if (textSize > MAX_LINK_TEXT_LENGTH || urlSize > MAX_LINK_URL_LENGTH) {
+            ImGui::Text("[Invalid link: too long]");
+            return;
+        }
     
         bool useStack = (textSize + 1 <= MAX_STACK_SIZE && urlSize + 1 <= MAX_STACK_SIZE);
 
