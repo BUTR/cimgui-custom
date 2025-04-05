@@ -185,7 +185,7 @@ namespace ImGui
         }
 
         void RenderLinkTextWrapped( const char* text_, const char* text_end_, const Link& link_,
-            const char* markdown_, const MarkdownConfig& mdConfig_, bool bIndentToHere_ = false );
+            const char* markdown_, const MarkdownConfig& mdConfig_ );
 
         void ResetIndent()
         {
@@ -481,7 +481,7 @@ namespace ImGui
                     }
                     else                 // it's a link, render it.
                     {
-                        textRegion.RenderLinkTextWrapped( markdown_ + link.text.start, markdown_ + link.text.start + link.text.size(), link, markdown_, mdConfig_, false );
+                        textRegion.RenderLinkTextWrapped( markdown_ + link.text.start, markdown_ + link.text.start + link.text.size(), link, markdown_, mdConfig_ );
                     }
                     ImGui::SameLine( 0.0f, 0.0f );
                     // reset the link by reinitializing it
@@ -644,26 +644,38 @@ namespace ImGui
     }
 
     inline void TextRegion::RenderLinkTextWrapped(const char* text_, const char* text_end_, const Link& link_,
-        const char* markdown_, const MarkdownConfig& mdConfig_, bool bIndentToHere_)
+        const char* markdown_, const MarkdownConfig& mdConfig_)
     {
-        std::vector<char> textBuffer(link_.text.size() + 1);
-        memcpy(textBuffer.data(), markdown_ + link_.text.start, link_.text.size());
-        textBuffer[link_.text.size()] = '\0';
+        const size_t MAX_STACK_SIZE = 2048;
+        size_t textSize = link_.text.size();
+        size_t urlSize = link_.url.size();
     
-        std::vector<char> urlBuffer(link_.url.size() + 1);
-        memcpy(urlBuffer.data(), markdown_ + link_.url.start, link_.url.size());
-        urlBuffer[link_.url.size()] = '\0';
+        bool useStack = (textSize + 1 <= MAX_STACK_SIZE && urlSize + 1 <= MAX_STACK_SIZE);
+
+        if (useStack) {
+            char textBuffer[MAX_STACK_SIZE];
+            char urlBuffer[MAX_STACK_SIZE];
     
-        if (bIndentToHere_) {
-            float widthLeft = ImGui::GetContentRegionAvail().x;
-            float indentNeeded = widthLeft;
-            if (indentNeeded > 0.0f) {
-                ImGui::Indent(indentNeeded);
-                indentX += indentNeeded; // Assuming indentX is in scope and needed elsewhere
-            }
+            memcpy(textBuffer, markdown_ + link_.text.start, textSize);
+            textBuffer[textSize] = '\0';
+    
+            memcpy(urlBuffer, markdown_ + link_.url.start, urlSize);
+            urlBuffer[urlSize] = '\0';
+    
+            ImGui::TextLinkOpenURL(textBuffer, urlBuffer);
         }
+        else {
+            std::vector<char> textBuffer(textSize + 1);
+            std::vector<char> urlBuffer(urlSize + 1);
     
-        ImGui::TextLinkOpenURL(textBuffer.data(), urlBuffer.data());
+            memcpy(textBuffer.data(), markdown_ + link_.text.start, textSize);
+            textBuffer[textSize] = '\0';
+    
+            memcpy(urlBuffer.data(), markdown_ + link_.url.start, urlSize);
+            urlBuffer[urlSize] = '\0';
+    
+            ImGui::TextLinkOpenURL(textBuffer.data(), urlBuffer.data());
+        }
     }
 
 
