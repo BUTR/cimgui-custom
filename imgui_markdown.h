@@ -67,7 +67,6 @@ namespace ImGui
          NORMAL_TEXT,
          HEADING,
          UNORDERED_LIST,
-         LINK,
          EMPHASIS,
     };
 
@@ -185,11 +184,8 @@ namespace ImGui
             RenderTextWrapped( text_, text_end_, true );
         }
 
-        bool RenderLinkText( const char* text_, const char* text_end_, const Link& link_, 
-            const char* markdown_, const MarkdownConfig& mdConfig_, const char** linkHoverStart_ );
-
         void RenderLinkTextWrapped( const char* text_, const char* text_end_, const Link& link_,
-            const char* markdown_, const MarkdownConfig& mdConfig_, const char** linkHoverStart_, bool bIndentToHere_ = false );
+            const char* markdown_, const MarkdownConfig& mdConfig_, bool bIndentToHere_ = false );
 
         void ResetIndent()
         {
@@ -321,7 +317,6 @@ namespace ImGui
     // render markdown
     inline void Markdown( const char* markdown_, size_t markdownLength_, const MarkdownConfig& mdConfig_ )
     {
-        static const char* linkHoverStart = NULL; // we need to preserve status of link hovering between frames
         ImGuiStyle& style = ImGui::GetStyle();
         Line        line;
         Link        link;
@@ -486,7 +481,7 @@ namespace ImGui
                     }
                     else                 // it's a link, render it.
                     {
-                        textRegion.RenderLinkTextWrapped( markdown_ + link.text.start, markdown_ + link.text.start + link.text.size(), link, markdown_, mdConfig_, &linkHoverStart, false );
+                        textRegion.RenderLinkTextWrapped( markdown_ + link.text.start, markdown_ + link.text.start + link.text.size(), link, markdown_, mdConfig_, false );
                     }
                     ImGui::SameLine( 0.0f, 0.0f );
                     // reset the link by reinitializing it
@@ -642,102 +637,34 @@ namespace ImGui
         }
     }
 
-    inline bool TextRegion::RenderLinkText( const char* text_, const char* text_end_, const Link& link_,
-        const char* markdown_, const MarkdownConfig& mdConfig_, const char** linkHoverStart_ )
-    {
-        MarkdownFormatInfo formatInfo;
-        formatInfo.config = &mdConfig_;
-        formatInfo.type = MarkdownFormatType::LINK;
-        mdConfig_.formatCallback( &formatInfo, true );
-        ImGui::PushTextWrapPos( -1.0f );
-        ImGui::TextUnformatted( text_, text_end_ );
-        ImGui::PopTextWrapPos();
-
-        bool bThisItemHovered = ImGui::IsItemHovered();
-        if(bThisItemHovered)
-        {
-            *linkHoverStart_ = markdown_ + link_.text.start;
-        }
-        bool bHovered = bThisItemHovered || ( *linkHoverStart_ == ( markdown_ + link_.text.start ) );
-
-        formatInfo.itemHovered = bHovered;
-        mdConfig_.formatCallback( &formatInfo, false );
-
-        if(bHovered)
-        {
-            if( ImGui::IsMouseReleased( 0 ) && mdConfig_.linkCallback )
-            {
-                MarkdownLinkCallbackData data = { markdown_ + link_.text.start, link_.text.size(), markdown_ + link_.url.start, link_.url.size(), mdConfig_.userData, false };
-                mdConfig_.linkCallback( &data );
-            }
-            if( mdConfig_.tooltipCallback )
-            {
-                MarkdownTooltipCallbackData data = { { markdown_ + link_.text.start, link_.text.size(), markdown_ + link_.url.start, link_.url.size(), mdConfig_.userData, false }, mdConfig_.linkIcon };
-                mdConfig_.tooltipCallback( &data );
-            }
-        }
-        return bThisItemHovered;
-    }
-
     // IsCharInsideWord based on ImGui's CalcWordWrapPositionA
     inline bool IsCharInsideWord( char c_ )
     {
         return c_ != ' ' && c_ != '.' && c_ != ',' && c_ != ';' && c_ != '!' && c_ != '?' && c_ != '\"';
     }
 
-    inline void TextRegion::RenderLinkTextWrapped( const char* text_, const char* text_end_, const Link& link_,
-        const char* markdown_, const MarkdownConfig& mdConfig_, const char** linkHoverStart_, bool bIndentToHere_ )
-        {
-            float       scale = ImGui::GetIO().FontGlobalScale;
-            float       widthLeft = GetContentRegionAvail().x;
-            const char* endLine = text_;
-            if( widthLeft > 0.0f )
-            {
-                endLine = ImGui::GetFont()->CalcWordWrapPositionA( scale, text_, text_end_, widthLeft );
-            }
-
-            if( endLine > text_ && endLine < text_end_ )
-            {
-                if( IsCharInsideWord( *endLine ) )
-                {
-                    // see if we can do a better cut.
-                    float       widthNextLine = widthLeft + GetCursorScreenPos().x - GetWindowPos().x; // was GetContentRegionMax().x on IMGUI_VERSION_NUM < 19099
-                    const char* endNextLine = ImGui::GetFont()->CalcWordWrapPositionA( scale, text_, text_end_, widthNextLine );
-                    if( endNextLine == text_end_ || ( endNextLine <= text_end_ && !IsCharInsideWord( *endNextLine ) ) )
-                    {
-                        // can possibly do better if go to next line
-                        endLine = text_;
-                    }
-                }
-            }
-            bool bHovered = RenderLinkText( text_, endLine, link_, markdown_, mdConfig_, linkHoverStart_ );
-            if( bIndentToHere_ )
-            {
-                float indentNeeded = GetContentRegionAvail().x - widthLeft;
-                if( indentNeeded )
-                {
-                    ImGui::Indent( indentNeeded );
-                    indentX += indentNeeded;
-                }
-            }
-            widthLeft = GetContentRegionAvail().x;
-            while( endLine < text_end_ )
-            {
-                text_ = endLine;
-                if( *text_ == ' ' ) { ++text_; }    // skip a space at start of line
-                endLine = ImGui::GetFont()->CalcWordWrapPositionA( scale, text_, text_end_, widthLeft );
-                if( text_ == endLine ) 
-                {
-                    endLine++;
-                }
-                bool bThisLineHovered = RenderLinkText( text_, endLine, link_, markdown_, mdConfig_, linkHoverStart_ );
-                bHovered = bHovered || bThisLineHovered;
-            }
-            if( !bHovered && *linkHoverStart_ == markdown_ + link_.text.start )
-            {
-                *linkHoverStart_ = NULL;
+    inline void TextRegion::RenderLinkTextWrapped(const char* text_, const char* text_end_, const Link& link_,
+        const char* markdown_, const MarkdownConfig& mdConfig_, bool bIndentToHere_)
+    {
+        std::vector<char> textBuffer(link_.text.size() + 1);
+        memcpy(textBuffer.data(), markdown_ + link_.text.start, link_.text.size());
+        textBuffer[link_.text.size()] = '\0';
+    
+        std::vector<char> urlBuffer(link_.url.size() + 1);
+        memcpy(urlBuffer.data(), markdown_ + link_.url.start, link_.url.size());
+        urlBuffer[link_.url.size()] = '\0';
+    
+        if (bIndentToHere_) {
+            float widthLeft = ImGui::GetContentRegionAvail().x;
+            float indentNeeded = widthLeft;
+            if (indentNeeded > 0.0f) {
+                ImGui::Indent(indentNeeded);
+                indentX += indentNeeded; // Assuming indentX is in scope and needed elsewhere
             }
         }
+    
+        ImGui::TextLinkOpenURL(textBuffer.data(), urlBuffer.data());
+    }
 
 
     inline void defaultMarkdownLinkCallback( const MarkdownLinkCallbackData* data_ )
@@ -845,24 +772,6 @@ namespace ImGui
             break;
         }
         case MarkdownFormatType::UNORDERED_LIST:
-            break;
-        case MarkdownFormatType::LINK:
-            if( start_ )
-            {
-                ImGui::PushStyleColor( ImGuiCol_Text, ImGui::GetStyle().Colors[ ImGuiCol_ButtonHovered ] );
-            }
-            else
-            {
-                ImGui::PopStyleColor();
-                if( markdownFormatInfo_->itemHovered )
-                {
-                    ImGui::UnderLine( ImGui::GetStyle().Colors[ ImGuiCol_ButtonHovered ] );
-                }
-                else
-                {
-                    ImGui::UnderLine( ImGui::GetStyle().Colors[ ImGuiCol_Button ] );
-                }
-            }
             break;
         }
     }
